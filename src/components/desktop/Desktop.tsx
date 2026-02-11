@@ -7,7 +7,9 @@ import { DesktopIcon } from './DesktopIcon'
 import { Notepad } from './apps/Notepad'
 import { FolderView, FolderItem } from './apps/FolderView'
 import { Chat } from './apps/Chat'
-import { useState } from 'react'
+import { SnakeGame } from './apps/SnakeGame'
+import { useState, useEffect } from 'react'
+import * as Sentry from '@sentry/nextjs'
 
 const INSTALL_GUIDE_CONTENT = `# SentryOS Install Guide
 
@@ -58,7 +60,14 @@ function DesktopContent() {
   const { windows, openWindow } = useWindowManager()
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null)
 
+  useEffect(() => {
+    Sentry.logger.info('SentryOS desktop loaded')
+    Sentry.metrics.count('desktop.session_started')
+  }, [])
+
   const openInstallGuide = () => {
+    Sentry.logger.info('App launched', { app: 'install-guide' })
+    Sentry.metrics.count('desktop.app_launched', 1, { attributes: { app: 'install-guide' } })
     openWindow({
       id: 'install-guide',
       title: 'Install Guide.md',
@@ -76,6 +85,8 @@ function DesktopContent() {
   }
 
   const openChatWindow = () => {
+    Sentry.logger.info('App launched', { app: 'chat' })
+    Sentry.metrics.count('desktop.app_launched', 1, { attributes: { app: 'chat' } })
     openWindow({
       id: 'chat',
       title: 'SentryOS Chat',
@@ -92,7 +103,28 @@ function DesktopContent() {
     })
   }
 
+  const openSnakeGame = () => {
+    Sentry.logger.info('App launched', { app: 'snake-game' })
+    Sentry.metrics.count('desktop.app_launched', 1, { attributes: { app: 'snake-game' } })
+    openWindow({
+      id: 'snake-game',
+      title: 'SentrySnake',
+      icon: '🐍',
+      x: 250,
+      y: 40,
+      width: 480,
+      height: 560,
+      minWidth: 380,
+      minHeight: 480,
+      isMinimized: false,
+      isMaximized: false,
+      content: <SnakeGame />
+    })
+  }
+
   const openAgentsFolder = () => {
+    Sentry.logger.info('App launched', { app: 'agents-folder' })
+    Sentry.metrics.count('desktop.app_launched', 1, { attributes: { app: 'agents-folder' } })
     const agentsFolderItems: FolderItem[] = []
 
     openWindow({
@@ -153,6 +185,14 @@ function DesktopContent() {
           onDoubleClick={openAgentsFolder}
           selected={selectedIcon === 'agents-folder'}
           onSelect={() => setSelectedIcon('agents-folder')}
+        />
+        <DesktopIcon
+          id="snake-game"
+          label="SentrySnake"
+          icon="game"
+          onDoubleClick={openSnakeGame}
+          selected={selectedIcon === 'snake-game'}
+          onSelect={() => setSelectedIcon('snake-game')}
         />
         <DesktopIcon
           id="chat"
